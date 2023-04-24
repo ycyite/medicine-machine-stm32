@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "exti.h": "c",
+        "speed.h": "c"
+    }
+}
