@@ -4,7 +4,6 @@
 #include "Serial.h"
 #include "PWM.h"
 #include "Timer.h"
-#include "Key.h"
 #include "RGB.h"
 #include "Exti.h"
 #include "HDL_WS2812B.h"
@@ -54,7 +53,7 @@ void Self_Test()
 	
 	float TempS,TempE;
 	TempS=0;TempE=0;
-	while(Num>=0&&Num<20)
+	while(Num>=0&&Num<10)
 	{
 		//I2C_LCD_ShowHexNum(1,1,0x00,2);
 		TIM_SetCompare2(TIM3,400);
@@ -81,6 +80,11 @@ void Self_Test()
 		}*/
 
 	}
+	if(TempE > SetTemperature){
+		Self_Flag = 1;
+	}else{
+		Self_Flag = 2;
+	}
 	while(TempE<SetTemperature)//小于设定温度报错
 	{
 		Process=4;//常红
@@ -90,10 +94,10 @@ void Self_Test()
 	TIM_CCxCmd(TIM3, TIM_Channel_2, TIM_CCx_Disable);//关闭定时器通道2
 	TIM_Cmd(TIM3, DISABLE);
 	TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);//更新中断函数
-	
+	Process=1;
 	while(!Start_Flag)
 	{
-		Process=1;
+		
 		//常绿
 		/*
 		Serial_TxPacket[0]=0xAA;
@@ -122,8 +126,10 @@ void Constant_Temp()//恒温
 	Time_init();
 	TimePwm_init(PERIOD-1,PRESCALER);
 	uart_init(9600);
-	while(Num>=0&&Num<30)
+	while(Num>=0&&Num<20)
 	{
+		
+		
 		/*I2C_LCD_WriteChar(1,4,(Num/100)+'0');
 		I2C_LCD_WriteChar(1,5,(Num/10)%10+'0');
 		I2C_LCD_WriteChar(1,6,(Num%10)+'0');
@@ -195,11 +201,18 @@ void Centrifugal()//离心
 	
 	PWM_Init();
 	Speed_Config();
-	while(Num>=0&&Num<60)
+	PWM_SetCompare1(95);
+	while(Num>=0&&Num<20)
 	{
-		PWM_SetCompare1(99);
+		u16 AD1=AD_GetValue(ADC_Channel_1);
+		//float temp2 = Get_Kelvin_Temperature(AD0);
+		float temp1 = Get_Kelvin_Temperature(AD1);
+		if(sprintf(Heat_Temp,"%.2f",temp1) < 0){
+
+		}
 	}
 	PWM_SetCompare1(1);//关闭离心
+	NVIC_DisableIRQ(EXTI15_10_IRQn);
 }
 void Fluorescence()//荧光
 {	
@@ -208,6 +221,7 @@ void Fluorescence()//荧光
 	TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);//更新中断函数
 	GPIO_SetBits(GPIOB,GPIO_Pin_6);
 	LED_Status[0] = '1';
+	LED_Status[1] = '\0';
 	Constant_Temp();//90
 	/*while(Num>=0&&Num<10)
 	{
@@ -232,9 +246,23 @@ void End()
 	TIM_CCxCmd(TIM3, TIM_Channel_4, TIM_CCx_Disable);//关闭定时器通道2
 	TIM_Cmd(TIM3, DISABLE);
 	TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);//更新中断函数
-	I2C_LCD_ShowHexNum(1,1,0x04,2);
 }
-
+void Wait_Start(){
+	Process = 1;
+	TIM_Cmd(TIM1, ENABLE);//开启定时
+	while(!Start_Flag);
+	
+		
+		//常绿
+		/*
+		Serial_TxPacket[0]=0xAA;
+		Serial_SendPacket();//给esp32发送自检结束
+		*/
+	
+	TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
+	TIM_Cmd(TIM1, DISABLE);        //关闭定时器
+    TIM_SetCounter(TIM1, 0);
+}
 int main(void)
 {
 	/*Moto_Init();
@@ -325,26 +353,38 @@ int main(void)
 		}
 		LED_Status[0] = '1';
 	}*/
+	LED_Status[0] = '0';
+	LED_Status[1] = '\0';
 	Serial_Init();
 	Timer_Init();
 	LED_Init();
-	Self_Test();
+	Wait_Start();
 	Process = 2;
 	Constant_Temp();
 	Centrifugal();
+
 	TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 	TIM_Cmd(TIM1, DISABLE);        //关闭定时器
 	TIM_SetCounter(TIM1, 0); 
 	Fluorescence();
 	End_Flag = 1;
+	Process = 3;
 	End();
-	return 0;
+	while(1);
 }
 void TIM1_UP_IRQHandler(void)
 {
 	if (TIM_GetITStatus(TIM1, TIM_IT_Update) == SET)
 	{
+		TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 		Num++;
+		if(wait_time >=4){
+			NVIC_SystemReset();
+		}
+		if(Start_Flag){
+			wait_time++;
+		}
+		
 		switch(Process)
 		{
 			case 0:Flashing_Red();break;//红闪
@@ -354,6 +394,6 @@ void TIM1_UP_IRQHandler(void)
 			case 4:Solid_Red();break;//红色常亮
 		}
 		
-		TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
+		
 	}
 }

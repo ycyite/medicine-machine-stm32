@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "Serial.h"
 #include <stdarg.h>
+#include "core_cm3.h"
 #include "Delay.h"
 uint8_t Serial_TxPacket[8]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};				//FF 01 02 03 04 FE
 uint8_t Serial_RxPacket[8]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};//存储发送或接收的数据不存包头包尾
@@ -15,6 +16,10 @@ char Send_Flag_Temp = '2';
 char Send_Flag_LED = '3';
 int Start_Flag = 0;
 int End_Flag = 0;
+int Pause_Flag = 0;
+int Self_Flag = 0;
+int Sys_End_Flag = 0;
+int wait_time = 0;
 void Serial_Init(void)
 {
 	USART_RCC_APB;
@@ -46,12 +51,12 @@ void Serial_Init(void)
 	NVIC_InitStructure.NVIC_IRQChannel = USART_IRQN;//中断通道
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
 	NVIC_Init(&NVIC_InitStructure);
 	
-	USART_Cmd(USART_I, ENABLE);//使能
+	
 	USART_ITConfig(USART_I, USART_IT_RXNE, ENABLE);//开启中断
-
+	USART_Cmd(USART_I, ENABLE);//使能
 	/*JDY31_SendString("AT+NAMEJDY31\r\n");
 	JDY31_SendString("AT+BUAD9600\r\n");*/
 }
@@ -175,19 +180,31 @@ void USART_IRQHANDLER(void){
 	if (USART_GetITStatus(USART_I, USART_IT_RXNE) == SET){
 		char RxData = USART_ReceiveData(USART_I);//读完数据自动清除标志位
 		if(End_Flag == 1){
-			Delay_ms(200);
-			USART_SendString("111");
+			wait_time = 0;
+			if(RxData == 'p'){
+				NVIC_SystemReset();
+			}
+			USART_SendString("111,");
 		}
-		else if(RxData == '0'){
-			Start_Flag = 1;
-			Delay_ms(200);
+		else if(RxData == 'l'){
+			wait_time = 0;
+			if(Start_Flag == 0){
+				Start_Flag = 1;
+			}
+			if(Pause_Flag == 1){
+				Pause_Flag = 0;
+			}
 			USART_SendString(Heat_Temp);
-			USART_SendString(" ");
+			USART_SendString(",");
 			USART_SendString(Motor_Speed);
-			USART_SendString(" ");
+			USART_SendString(",");
 			USART_SendString(LED_Status);
+		}else if(RxData == 'p'){
+			wait_time = 0;
+			NVIC_SystemReset();
 		}
 	}
+	
 	
 }
 

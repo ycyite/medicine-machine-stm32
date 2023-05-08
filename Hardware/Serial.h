@@ -24,6 +24,10 @@ extern char Send_Flag_Temp;
 extern char Send_Flag_LED;
 extern int Start_Flag; //开始标志
 extern int End_Flag;
+extern int Pause_Flag;
+extern int Self_Flag;
+extern int Sys_End_Flag;
+extern int wait_time;
 void Serial_Init(void);
 void Serial_SendByte(uint8_t Byte);
 void Serial_SendArray(uint8_t *Array, uint16_t Length);
