@@ -220,8 +220,7 @@ void Fluorescence()//荧光
 	TIM_Cmd(TIM3, DISABLE);
 	TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);//更新中断函数
 	GPIO_SetBits(GPIOB,GPIO_Pin_6);
-	LED_Status[0] = '1';
-	LED_Status[1] = '\0';
+	
 	Constant_Temp();//90
 	/*while(Num>=0&&Num<10)
 	{
@@ -355,6 +354,8 @@ int main(void)
 	}*/
 	LED_Status[0] = '0';
 	LED_Status[1] = '\0';
+	Motor_Speed[0] = '0';
+	Motor_Speed[1] = '\0';
 	Serial_Init();
 	Timer_Init();
 	LED_Init();
@@ -365,10 +366,11 @@ int main(void)
 
 	TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 	TIM_Cmd(TIM1, DISABLE);        //关闭定时器
-	TIM_SetCounter(TIM1, 0); 
+	TIM_SetCounter(TIM1, 0);
+	LED_Status[0] = '1';
+	LED_Status[1] = '\0';
 	Fluorescence();
 	End_Flag = 1;
-	Process = 3;
 	End();
 	while(1);
 }
