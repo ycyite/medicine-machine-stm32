@@ -44,7 +44,7 @@ void WAVE_EXTI_Config(void){
 	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource15); 
 	EXTI_InitStructure.EXTI_Line = EXTI_Line15;
 	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising; //上升下降沿中断
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising; //上升沿中断
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
 	EXTI_Init(&EXTI_InitStructure); 
 }

@@ -12,16 +12,16 @@ void EXTI_Config(void){
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE); 
 	
 	/* GPIO config*/	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;       
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD; //内部上拉输入
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;       
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD; //内部上拉
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
 	/* EXTI line mode config */
-	GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource0); 
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource12); 
 	EXTI_InitStructure.EXTI_Line = EXTI_Line0;
 	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising; //上升下降沿中断
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling; //上升下降沿中断
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
 	EXTI_Init(&EXTI_InitStructure); 
 
@@ -30,28 +30,36 @@ void EXTI_Config(void){
 void NVIC_Config(void){
     NVIC_InitTypeDef NVIC_InitStructure;
     NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
     //调速键
 }
 
-void KEY_EXTI_Config(void){
+void Connect_EXTI_Config(void){
     EXTI_Config();
     NVIC_Config();
     EXTI_ClearFlag(EXTI_Line0);
 }
-int val[6] = {0, 10, 20, 30, 40, 49};
-int time = 0;
+
 
 void EXTI0_IRQHandler(void){
-    EXTI->PR = EXTI_Line0;
-    if((GPIOB->IDR & GPIO_Pin_0) != 0){
-        motor_status = 0;
+    if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_12)==SET){
+        NVIC_SystemReset();
     }
 }
 
+void Check_Connect(){
+    while(1){
+        if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_12)==SET){
+            Delay_ms(10);
+            if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_12)==SET){
+                break;
+            }
+        }
+    }
+}
 /*void EXTI2_IRQHandler(void){
     Delay_ms(10); 
     if(EXTI_GetITStatus(EXTI_Line2)!=RESET){

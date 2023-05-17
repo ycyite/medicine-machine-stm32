@@ -28,6 +28,7 @@
 #define SetTemperature 20
 int Num;//计时，10s加1
 u8 Process;//指示灯流程
+int Connect_Flag;
 void Motor_Reset(){
 	Delay_ms(10);
 	EXTI->PR = EXTI_Line0;
@@ -262,6 +263,13 @@ void Wait_Start(){
 	TIM_Cmd(TIM1, DISABLE);        //关闭定时器
     TIM_SetCounter(TIM1, 0);
 }
+
+void Check_Blue_Connect(){
+	TIM_Cmd(TIM1, ENABLE);//开启定时
+	Process = 0;
+	Check_Connect();
+	Connect_Flag = 1; //蓝牙连接成功
+}
 int main(void)
 {
 	/*Moto_Init();
@@ -352,6 +360,7 @@ int main(void)
 		}
 		LED_Status[0] = '1';
 	}*/
+	Connect_Flag = 0;
 	LED_Status[0] = '0';
 	LED_Status[1] = '\0';
 	Motor_Speed[0] = '0';
@@ -359,6 +368,9 @@ int main(void)
 	Serial_Init();
 	Timer_Init();
 	LED_Init();
+	EXTI_Config();
+	Check_Blue_Connect();
+	
 	Wait_Start();
 	Process = 2;
 	Constant_Temp();
@@ -380,13 +392,20 @@ void TIM1_UP_IRQHandler(void)
 	{
 		TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 		Num++;
-		if(wait_time >=4){
-			NVIC_SystemReset();
+		// if(wait_time >=4){
+		// 	NVIC_SystemReset();
+		// }
+		// if(Start_Flag){
+		// 	wait_time++;
+		//}
+		if(Connect_Flag){
+			if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_12)==RESET){
+				Delay_ms(5);
+				if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_12)==RESET){	
+					NVIC_SystemReset();
+				}
+			}
 		}
-		if(Start_Flag){
-			wait_time++;
-		}
-		
 		switch(Process)
 		{
 			case 0:Flashing_Red();break;//红闪
