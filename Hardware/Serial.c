@@ -45,7 +45,6 @@ void Serial_Init(void)
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;//8位字长
 	USART_Init(USART_I, &USART_InitStructure);
 	
-	
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	NVIC_InitTypeDef NVIC_InitStructure;
 	NVIC_InitStructure.NVIC_IRQChannel = USART_IRQN;//中断通道
@@ -54,11 +53,8 @@ void Serial_Init(void)
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
 	NVIC_Init(&NVIC_InitStructure);
 	
-	
 	USART_ITConfig(USART_I, USART_IT_RXNE, ENABLE);//开启中断
 	USART_Cmd(USART_I, ENABLE);//使能
-	/*JDY31_SendString("AT+NAMEJDY31\r\n");
-	JDY31_SendString("AT+BUAD9600\r\n");*/
 }
 
 void Serial_SendByte(uint8_t Byte)//从TX引脚发送一个数据
@@ -104,11 +100,6 @@ void Serial_SendNumber(uint32_t Number, uint8_t Length)//发送数字
 	}
 }
 
-/*int fputc(int ch, FILE *f)//重定向fputc到串口
-{
-	Serial_SendByte(ch);
-	return ch;
-}*/
 
 void Serial_Printf(char *format, ...)//对sprintf函数进行封装 
 {
@@ -137,45 +128,6 @@ uint8_t Serial_GetRxFlag(void)//读后自动清除flag标志位
 	}
 	return 0;
 }
-
-/*void USART_IRQHANDLER(void)
-{
-	static uint8_t RxState = 0;//状态标识，静态变量在一次运行只定义一次
-	static uint8_t pRxPacket = 0;//接收几个数据
-	if (USART_GetITStatus(USART_I, USART_IT_RXNE) == SET)
-	{
-		uint8_t RxData = USART_ReceiveData(USART_I);//读完数据自动清除标志位
-		
-		if (RxState == 0)
-		{
-			if (RxData == 0xFF)
-			{
-				RxState = 1;
-				pRxPacket = 0;
-			}
-		}
-		else if (RxState == 1)
-		{
-			Serial_RxPacket[pRxPacket] = RxData;//存到接收数组中
-			Serial_RxPacket1[pRxPacket]=Serial_RxPacket[pRxPacket];
-			pRxPacket ++;
-			if (pRxPacket >= 8)
-			{
-				RxState = 2;
-			}
-		}
-		else if (RxState == 2)
-		{
-			if (RxData == 0xFE)
-			{
-				RxState = 0;
-				Serial_RxFlag = 1;
-			}
-		}
-		
-		USART_ClearITPendingBit(USART_I, USART_IT_RXNE);
-	}
-}*/
 void USART_IRQHANDLER(void){
 	if (USART_GetITStatus(USART_I, USART_IT_RXNE) == SET){
 		char RxData = USART_ReceiveData(USART_I);//读完数据自动清除标志位

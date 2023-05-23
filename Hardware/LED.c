@@ -19,12 +19,6 @@ void LED_Init(void)
 	GPIO_ResetBits(GPIOC,GPIO_Pin_13);
 	GPIO_ResetBits(GPIOC,GPIO_Pin_14);
 }
-void Solid_Green(void)//绿色常亮
-{
-	GPIO_WriteBit(GPIOC, GPIO_Pin_13, (BitAction)1);
-	GPIO_WriteBit(GPIOC, GPIO_Pin_14, (BitAction)0);
-	GPIO_WriteBit(GPIOC, GPIO_Pin_15, (BitAction)0);
-}
 void Solid_Red(void)//红色常亮
 {
 	GPIO_WriteBit(GPIOC, GPIO_Pin_15, (BitAction)1);
@@ -36,6 +30,12 @@ void Solid_Yellow(void)//黄色常亮
 	GPIO_WriteBit(GPIOC, GPIO_Pin_15, (BitAction)1);
 	GPIO_WriteBit(GPIOC, GPIO_Pin_13, (BitAction)1);
 	GPIO_WriteBit(GPIOC, GPIO_Pin_14, (BitAction)0);
+}
+void Solid_Green(void)//绿色常亮
+{
+	GPIO_WriteBit(GPIOC, GPIO_Pin_13, (BitAction)1);
+	GPIO_WriteBit(GPIOC, GPIO_Pin_14, (BitAction)0);
+	GPIO_WriteBit(GPIOC, GPIO_Pin_15, (BitAction)0);
 }
 void Flashing_Green(void)//绿色闪烁
 {

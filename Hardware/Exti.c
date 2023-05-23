@@ -13,18 +13,9 @@ void EXTI_Config(void){
 	
 	/* GPIO config*/	
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;       
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD; //内部上拉
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD; //内部下拉
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-	/* EXTI line mode config */
-	GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource12); 
-	EXTI_InitStructure.EXTI_Line = EXTI_Line0;
-	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling; //上升下降沿中断
-	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-	EXTI_Init(&EXTI_InitStructure); 
-
 }
 
 void NVIC_Config(void){

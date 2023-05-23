@@ -83,17 +83,18 @@ void Speed_Config(void){
     NVIC_WAVE_Config();
     TIM_Cmd(TIM2, ENABLE);
 }
+
 void TIM2_IRQHandler(void){
     TIM2->SR = 0x0000;	//清除中断标志位
-    speed_info1.speed = speed_info1.wave_nums*10;
-    speed_info1.wave_nums = 0;
+    speed_info1.speed = speed_info1.wave_nums*10; //根据每秒获得的方波数进行计算获得转速
+    speed_info1.wave_nums = 0; //方波数清零
     sprintf(Motor_Speed, "%d", speed_info1.speed);
 }
 void EXTI15_10_IRQHandler(void){
     EXTI->PR = EXTI_Line15;
 	Delay_us(10);
     if((GPIOA->IDR & GPIO_Pin_15) != 0){
-        speed_info1.wave_nums++;
+        speed_info1.wave_nums++; //方波来一次，方波数增加一
     }
       
 }

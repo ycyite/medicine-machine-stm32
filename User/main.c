@@ -129,55 +129,15 @@ void Constant_Temp()//恒温
 	uart_init(9600);
 	while(Num>=0&&Num<20)
 	{
-		
-		
-		/*I2C_LCD_WriteChar(1,4,(Num/100)+'0');
-		I2C_LCD_WriteChar(1,5,(Num/10)%10+'0');
-		I2C_LCD_WriteChar(1,6,(Num%10)+'0');
-		I2C_LCD_ShowHexNum(1,1,0x01,2);
-		USART1_SendData(0XFA);
-		USART1_SendData(0XC6);
-		USART1_SendData(0XC0);
-		if(USART_RX_STA&0X8000)
-		{
-			//pid.Pv=(float)USART_RX_BUF[2]+(float)(USART_RX_BUF[3])/100;
-			float Pv=(float)USART_RX_BUF[2]+(float)(USART_RX_BUF[3])/100;
-			//if(Pv>t3&&Pv<100)t3=Pv;
-			//I2C_LCD_WriteFloat(1,7,Pv);
-			I2C_LCD_WriteFloat(2,1,Pv);
-			USART_RX_STA=0;
-			
-		}
-		Delay_ms(50);
-		USART1_SendData(0XFA);
-		USART1_SendData(0XCA);
-		USART1_SendData(0XC4);
-		*/
-		//u16 AD0=AD_GetValue(ADC_Channel_0);
-		u16 AD1=AD_GetValue(ADC_Channel_1);
-		//float temp2 = Get_Kelvin_Temperature(AD0);
-		float temp1 = Get_Kelvin_Temperature(AD1);
+		u16 AD1=AD_GetValue(ADC_Channel_1); //获取热敏电阻的AD值
+		float temp1 = Get_Kelvin_Temperature(AD1); //获得加热片温度
 		pid.Pv=temp1;
 		if(sprintf(Heat_Temp,"%.2f",temp1) < 0){
 
 		}
-		/*
-		I2C_LCD_WriteFloat(2,7,temp1);
-		
-		if(t1<temp1)t1=temp1;
-		I2C_LCD_WriteFloat(1,12,t1);
-		if(t1>43){
-		if(temp1<t2){
-			t2 = temp1;
-			}
-		}
-		   I2C_LCD_WriteFloat(2,12,t2);
-		
-		*/
-		//I2C_LCD_WriteFloat(2,1,pid.Pv);
-		PID_Calc();
+		PID_Calc(); //PID计算
 		unsigned int num=0;
-		num=(((pid.OUT*PERIOD)/pid.pwmcycle)-1);
+		num=(((pid.OUT*PERIOD)/pid.pwmcycle)-1); //将PID输出转换成PWM波的占空比
 		TIM_SetCompare2(TIM3,num);
 	}
 	TIM_SetCompare2(TIM3,1);//关闭加热
@@ -391,13 +351,7 @@ void TIM1_UP_IRQHandler(void)
 	if (TIM_GetITStatus(TIM1, TIM_IT_Update) == SET)
 	{
 		TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
-		Num++;
-		// if(wait_time >=4){
-		// 	NVIC_SystemReset();
-		// }
-		// if(Start_Flag){
-		// 	wait_time++;
-		//}
+		Num++;//定时累加
 		if(Connect_Flag){
 			if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_12)==RESET){
 				Delay_ms(5);
@@ -405,16 +359,13 @@ void TIM1_UP_IRQHandler(void)
 					NVIC_SystemReset();
 				}
 			}
-		}
+		}//蓝牙自检
 		switch(Process)
 		{
 			case 0:Flashing_Red();break;//红闪
 			case 1:Solid_Green();break;//绿亮
 			case 2:Flashing_Green();break;//绿闪
-			case 3:Solid_Yellow();break;//黄色常亮
-			case 4:Solid_Red();break;//红色常亮
-		}
-		
+		}//状态切换
 		
 	}
 }
